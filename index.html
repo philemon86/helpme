@@ -1,0 +1,1167 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>盤點小幫手</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --ink: #2d3436;
+      --muted: #636e72;
+      --accent: #10ac84;
+      --accent-hover: #0ca678;
+      --danger: #ee5253;
+      --line: #dfe6e9;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --radius: 12px;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      color: var(--ink);
+      background-color: var(--bg);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .hero {
+      padding: 24px 20px;
+      background: linear-gradient(135deg, #10ac84 0%, #00b894 100%);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(16, 172, 132, 0.3);
+      text-align: center;
+    }
+    .hero h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+    .hero p { margin: 6px 0 0; font-size: 13px; opacity: 0.85; font-weight: 300; }
+
+    .stepper {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 84px;
+      z-index: 9;
+    }
+    .step {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      padding: 8px 4px;
+      border-radius: 8px;
+      background: #eee;
+      color: #a0a0a0;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    .step.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(16, 172, 132, 0.2);
+    }
+
+    .wrap { max-width: 600px; margin: 20px auto 100px; padding: 0 16px; }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--line);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: transform 0.2s ease;
+    }
+
+    .card h2 { margin: 0 0 16px; font-size: 18px; color: var(--accent); display: flex; align-items: center; }
+    .card h2::before { content: ""; width: 4px; height: 18px; background: var(--accent); margin-right: 10px; border-radius: 2px; }
+
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(16, 172, 132, 0.1);
+      width: 100%;
+    }
+    .btn:active { transform: scale(0.98); opacity: 0.9; }
+    .btn.ghost { background: #fff; color: var(--accent); border: 1.5px solid var(--accent); box-shadow: none; }
+    .btn.warn { background: var(--danger); box-shadow: 0 4px 6px rgba(238, 82, 83, 0.1); }
+    .btn.tiny { padding: 6px 12px; font-size: 12px; border-radius: 6px; width: auto; }
+    .btn:disabled { background: #ced4da; box-shadow: none; cursor: not-allowed; }
+
+    .input, .scan-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #dcdde1;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+      background: #fdfdfd;
+    }
+    .input:focus, .scan-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+    }
+    .scan-input {
+      font-size: 22px;
+      border: 2px solid var(--accent);
+      text-align: center;
+      font-family: var(--mono);
+    }
+
+    .hint { font-size: 12px; color: var(--muted); }
+    .hint.err { color: var(--danger); font-weight: 700; }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      background: #f1f2f6;
+      color: #57606f;
+      font-weight: 500;
+    }
+
+    .order-list {
+      max-height: 50vh;
+      overflow: auto;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    .order-item {
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .order-item:hover { background: #fafafa; }
+    .order-item.active { background: #f0fff4; border-left: 5px solid var(--accent); }
+    .order-item input { pointer-events: none; }
+
+    .status-done { color: #2f8c7f; font-weight: 700; }
+    .status-open { color: #b4802b; font-weight: 700; }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    th {
+      background: #f8f9fa;
+      padding: 12px 8px;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 2px solid var(--line);
+      position: sticky;
+      top: 0;
+    }
+    td { padding: 12px 8px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; vertical-align: top; }
+
+    .row-dim { background-color: #f9f9f9; opacity: 0.6; }
+    .row-bright { background-color: #fff9db; }
+    .check { font-weight: 800; font-size: 16px; }
+    .check.ok { color: var(--accent); }
+    .check.no { color: var(--danger); }
+    .cell-center { text-align: center; }
+
+    .mono { font-family: var(--mono); color: #2d3436; background: #f1f2f6; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
+
+    .step-page { display: none; animation: fadeIn 0.3s ease; }
+    .step-page.active { display: block; }
+
+    .snapshot-mode .hero,
+    .snapshot-mode .stepper,
+    .snapshot-mode .actions-hide { display: none !important; }
+    .snapshot-mode body { background: #fff; }
+    #snapshotArea { padding: 10px; background: #fff; }
+
+    .footer-actions {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer-actions .btn { width: 100%; }
+    .footer-actions-4 {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "back reset"
+        "snapshot done";
+    }
+    .footer-actions-4 #btnBack3 { grid-area: back; }
+    .footer-actions-4 #btnResetAll { grid-area: reset; }
+    .footer-actions-4 #btnSnapshot { grid-area: snapshot; }
+    .footer-actions-4 #btnDone { grid-area: done; }
+
+    @media (max-width: 480px) {
+      .stepper { top: 76px; }
+      .hero h1 { font-size: 18px; }
+      .hero p { font-size: 11px; }
+      .footer-actions { grid-template-columns: 1fr; }
+      .footer-actions-4 { grid-template-areas: none; }
+      .footer-actions-4 #btnBack3,
+      .footer-actions-4 #btnResetAll,
+      .footer-actions-4 #btnSnapshot,
+      .footer-actions-4 #btnDone { grid-area: auto; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <h1>盤點小幫手</h1>
+    <p>手機流程：上傳 → 選單 → 掃碼 → 結果</p>
+  </header>
+
+  <div class="stepper">
+    <div class="step active" data-step="1">1 上傳</div>
+    <div class="step" data-step="2">2 選單</div>
+    <div class="step" data-step="3">3 掃碼</div>
+    <div class="step" data-step="4">4 結果</div>
+  </div>
+
+  <main class="wrap">
+    <section class="card step-page active" data-page="1">
+      <h2>第一步：上傳資料</h2>
+      <div class="hint" style="margin-bottom:10px;">一次選兩個檔：STKSALE1.csv 與 STKSALE2.csv。名稱不對會直接拒收。</div>
+      <div style="margin-bottom:10px;">
+        <div class="hint">選擇出貨檔案（可多選）</div>
+        <input type="file" class="input" id="fileShip" accept=".csv" multiple />
+        <div class="hint err" id="uploadError" style="display:none;"></div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div class="hint">商品資料庫會自動讀取 PRODUCT.csv（放在同資料夾）</div>
+        <div class="hint" id="corsHint" style="display:none; color:#c44536;">若出現無法載入商品：請用 `start-local-server.bat` 開啟（http://），不要用 file:// 直接開。</div>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <span class="tag" id="statusMaster">主檔: 0</span>
+        <span class="tag" id="statusDetail">明細: 0</span>
+        <span class="tag" id="statusProduct">商品: 0</span>
+        <span class="tag" id="statusAuto">商品自動載入：等待中</span>
+      </div>
+      <button class="btn" id="btnGoStep2">下一步</button>
+    </section>
+
+    <section class="card step-page" data-page="2">
+      <h2>第二步：選擇單號</h2>
+      <div class="row" style="margin-bottom:8px;">
+        <input id="orderSearch" class="input" placeholder="搜尋單號 / 客戶 / 地址" />
+      </div>
+      <div class="row" style="margin-bottom:8px;">
+        <span class="tag" id="selectedCount">已選: 0</span>
+        <button class="btn tiny ghost" id="btnClearSelect">清除選取</button>
+      </div>
+      <div class="order-list" id="orderList"></div>
+      <div class="footer-actions" style="margin-top:10px;">
+        <button class="btn ghost" id="btnBack1">上一步</button>
+        <button class="btn" id="btnGoStep3" disabled>下一步</button>
+      </div>
+    </section>
+
+    <section class="card step-page" data-page="3">
+      <h2>第三步：掃碼盤點</h2>
+      <div class="row" style="margin-bottom:8px;">
+        <span class="tag" id="selectedOrdersTag">已選單號: 0</span>
+      </div>
+      <div class="row" style="margin-bottom:8px;">
+        <input id="scanInput" class="scan-input" placeholder="掃條碼或輸入商品代碼" />
+        <button class="btn" id="btnAddScan">登錄</button>
+      </div>
+      <div class="hint" style="margin-bottom:8px;">可輸入：`6*H006W` 或 `H006W*6` 代表一次 6 件</div>
+      <div class="row" style="margin-bottom:8px;">
+        <span class="tag" id="scanCount">已掃: 0</span>
+        <span class="tag" id="scanMsg" style="display:none;"></span>
+      </div>
+      <div class="footer-actions" style="margin-bottom:10px;">
+        <button class="btn ghost" id="btnUndo">回退</button>
+        <button class="btn warn" id="btnClearScan">清空本單</button>
+      </div>
+      <div class="hint" style="margin-bottom:6px;">明細對照（合併清單）</div>
+      <div style="max-height: 48vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px;">
+        <table>
+          <thead>
+            <tr id="detailHead">
+              <th>商品</th>
+              <th class="cell-center">應掃</th>
+              <th class="cell-center">已掃</th>
+              <th class="cell-center">狀態</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+      <div class="footer-actions" style="margin-top:10px;">
+        <button class="btn ghost" id="btnBack2">上一步</button>
+        <button class="btn" id="btnGoStep4">下一步</button>
+      </div>
+    </section>
+
+    <section class="card step-page" data-page="4">
+      <h2>第四步：結果截圖</h2>
+      <div class="hint" style="margin-bottom:8px;">這一頁就是截圖用畫面：出貨單基本資訊 + 盤點結果。</div>
+      <div id="snapshotArea">
+      <div class="card" style="margin-bottom:10px;">
+        <div class="row" style="margin-bottom:6px;">
+          <span class="tag" id="snapshotOrders">出貨單：—</span>
+          <span class="tag" id="snapshotDate">日期：—</span>
+        </div>
+        <div class="row">
+          <span class="tag" id="snapshotCount">品項：0</span>
+          <span class="tag" id="snapshotScan">已掃：0</span>
+        </div>
+      </div>
+      <div id="snapshotLists"></div>
+      <div id="extraWrap" style="display:none;">
+        <div class="hint" style="margin:10px 0 6px;">多掃/未知</div>
+        <div style="border: 1px solid var(--line); border-radius: 12px;">
+          <table>
+            <thead>
+              <tr>
+                <th>代碼</th>
+                <th>品名</th>
+                <th>數量</th>
+              </tr>
+            </thead>
+            <tbody id="extraList"></tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+      <div class="footer-actions actions-hide footer-actions-4" style="margin-top:10px;">
+        <button class="btn ghost" id="btnBack3">上一步</button>
+        <button class="btn ghost" id="btnResetAll">結束盤點</button>
+        <button class="btn ghost" id="btnSnapshot">匯出圖片</button>
+        <button class="btn" id="btnDone">回到訂單列表</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      master: [],
+      detail: [],
+      products: [],
+      productsByCode: new Map(),
+      productsByBarcode: new Map(),
+      orders: [],
+      selectedOrders: new Set(),
+      scanned: new Map(),
+      scanLog: []
+    };
+
+    const el = (id) => document.getElementById(id);
+    const EXCLUDE_CODES = new Set(['R','S031F','S031A','S031C','S031B','S031E','S031G','S031H']);
+    const EXCLUDE_NAMES = new Set([
+      '紅利',
+      'R紅利',
+      '郵資(E小包)',
+      '郵資(未滿600元/郵局宅配/快捷)',
+      '郵資(海運)',
+      '郵資(航空)',
+      '郵資(陸空)',
+      '郵資(報關)',
+      '郵資(黑貓宅到店/黑貓宅配)'
+    ]);
+
+    function focusScan() {
+      const input = el('scanInput');
+      if (!input) return;
+      setTimeout(() => input.focus(), 0);
+    }
+
+    function setScanMsg(msg) {
+      const m = el('scanMsg');
+      if (!msg) { m.style.display = 'none'; m.textContent = ''; return; }
+      m.textContent = msg;
+      m.style.display = 'inline-block';
+      setTimeout(() => {
+        if (m.textContent === msg) {
+          m.style.display = 'none';
+          m.textContent = '';
+        }
+      }, 1500);
+    }
+
+    function normalizeCode(val) {
+      return (val || '').trim().replace(/\s+/g, '').toUpperCase();
+    }
+
+    function isExcluded(code, name) {
+      const c = normalizeCode(code);
+      const n = (name || '').trim();
+      if (EXCLUDE_CODES.has(c)) return true;
+      if (EXCLUDE_NAMES.has(n)) return true;
+      if (n.includes('紅利')) return true;
+      return false;
+    }
+
+    function setStep(step) {
+      document.querySelectorAll('.step').forEach(s => {
+        s.classList.toggle('active', s.dataset.step === String(step));
+      });
+      document.querySelectorAll('.step-page').forEach(p => {
+        p.classList.toggle('active', p.dataset.page === String(step));
+      });
+      try {
+        localStorage.setItem('inventory_step', String(step));
+        sessionStorage.setItem('inventory_step', String(step));
+      } catch {}
+      location.hash = `step-${step}`;
+    }
+    function saveRuntimeState() {
+      try {
+        localStorage.setItem('inventory_selected', JSON.stringify([...state.selectedOrders]));
+        localStorage.setItem('inventory_scanned', JSON.stringify([...state.scanned]));
+        localStorage.setItem('inventory_scanLog', JSON.stringify(state.scanLog));
+      } catch {}
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cur += '"'; i++; }
+          else if (ch === '"') { inQuotes = false; }
+          else { cur += ch; }
+        } else {
+          if (ch === '"') inQuotes = true;
+          else if (ch === ',') { row.push(cur); cur = ''; }
+          else if (ch === '\n') { row.push(cur.replace(/\r$/, '')); rows.push(row); row = []; cur = ''; }
+          else { cur += ch; }
+        }
+      }
+      if (cur.length || row.length) { row.push(cur.replace(/\r$/, '')); rows.push(row); }
+      return rows;
+    }
+
+    function rowsToObjects(rows) {
+      if (!rows.length) return [];
+      const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim());
+      return rows.slice(1).filter(r => r.length > 1).map(r => {
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = (r[i] ?? '').trim(); });
+        return obj;
+      });
+    }
+
+    function decodeBytes(buf) {
+      // Force-decode both encodings (non-fatal), then compare replacement-char counts.
+      const textUtf8 = new TextDecoder('utf-8').decode(buf);
+      const textBig5 = new TextDecoder('big5').decode(buf);
+      const utf8BadCount = (textUtf8.match(/\uFFFD/g) || []).length;
+      const big5BadCount = (textBig5.match(/\uFFFD/g) || []).length;
+      if (utf8BadCount > big5BadCount) return textBig5;
+      return textUtf8;
+    }
+
+    async function readFileText(file) {
+      const buf = await file.arrayBuffer();
+      return decodeBytes(buf);
+    }
+
+    async function fetchText(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('fetch failed');
+      const buf = await res.arrayBuffer();
+      return decodeBytes(buf);
+    }
+
+    async function autoLoadProducts() {
+      try {
+        const text = await fetchText('./PRODUCT.csv');
+        loadProducts(text);
+        el('statusAuto').textContent = '商品自動載入：成功';
+        el('corsHint').style.display = 'none';
+      } catch {
+        el('statusAuto').textContent = '商品自動載入：失敗';
+        el('corsHint').style.display = 'block';
+      }
+    }
+
+    function loadMaster(text) {
+      state.master = rowsToObjects(parseCSV(text));
+      buildOrders();
+      el('statusMaster').textContent = `主檔: ${state.master.length}`;
+      try {
+        localStorage.setItem('inventory_master', JSON.stringify(state.master));
+        sessionStorage.setItem('inventory_master', JSON.stringify(state.master));
+      } catch {}
+    }
+
+    function loadDetail(text) {
+      state.detail = rowsToObjects(parseCSV(text));
+      buildOrders();
+      el('statusDetail').textContent = `明細: ${state.detail.length}`;
+      try {
+        localStorage.setItem('inventory_detail', JSON.stringify(state.detail));
+        sessionStorage.setItem('inventory_detail', JSON.stringify(state.detail));
+      } catch {}
+    }
+
+    function loadProducts(text) {
+      state.products = rowsToObjects(parseCSV(text));
+      state.productsByCode.clear();
+      state.productsByBarcode.clear();
+      for (const p of state.products) {
+        const code = normalizeCode(p.CODE);
+        if (code) state.productsByCode.set(code, p);
+        const barcode = normalizeCode(p.BARCODE);
+        if (barcode) state.productsByBarcode.set(barcode, p);
+      }
+      el('statusProduct').textContent = `商品: ${state.products.length}`;
+      try {
+        localStorage.setItem('inventory_products', JSON.stringify(state.products));
+        sessionStorage.setItem('inventory_products', JSON.stringify(state.products));
+      } catch {}
+    }
+
+    function buildOrders() {
+      if (!state.master.length || !state.detail.length) return;
+      const itemsByMaster = new Map();
+      for (const it of state.detail) {
+        const key = it.MASTERI || it.CODE || it.ERI;
+        if (!itemsByMaster.has(key)) itemsByMaster.set(key, []);
+        itemsByMaster.get(key).push(it);
+      }
+      state.orders = state.master.map(m => {
+        const key = m.ERI || m.CODE;
+        const items = itemsByMaster.get(key) || [];
+        const code = m.CODE || m.ERI || '';
+        return {
+          key,
+          code,
+          cust: m.CUST || '',
+          addr: m.ADDR || '',
+          date: m.SDATE || '',
+          items
+        };
+      }).filter(o => !String(o.code || '').includes('S'));
+      renderOrderList();
+    }
+
+    function renderOrderList() {
+      const list = el('orderList');
+      const q = el('orderSearch').value.trim();
+      list.innerHTML = '';
+      const doneSet = loadDoneSet();
+      const totalSelected = state.selectedOrders.size;
+      state.orders.filter(o => {
+        if (!q) return true;
+        const t = `${o.code} ${o.cust} ${o.addr}`;
+        return t.includes(q);
+      }).forEach(o => {
+        const div = document.createElement('div');
+        const isSelected = state.selectedOrders.has(o.key);
+        div.className = 'order-item' + (isSelected ? ' active' : '');
+        const done = doneSet.has(o.key);
+        div.innerHTML = `
+          <div>
+            <div>
+              <input type="checkbox" ${isSelected ? 'checked' : ''} aria-label="選擇單號" />
+              <strong style="margin-left:6px;">${o.code}</strong> <span class="tag">${o.date}</span>
+            </div>
+            <div class="hint">${o.cust} ${o.addr}</div>
+          </div>
+          <div>
+            <div class="${done ? 'status-done' : 'status-open'}">${done ? '已盤點' : '未盤點'}</div>
+            ${done ? `
+              <div class="row" style="margin-top:6px;">
+                <button class="btn tiny ghost" data-action="view" data-key="${o.key}">檢視盤點單</button>
+                <button class="btn tiny" data-action="edit" data-key="${o.key}">修改盤點單</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+        div.onclick = () => toggleSelect(o.key);
+        list.appendChild(div);
+      });
+      list.querySelectorAll('button[data-action]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const key = btn.getAttribute('data-key');
+          const action = btn.getAttribute('data-action');
+          if (action === 'view') viewOrder(key);
+          if (action === 'edit') editOrder(key);
+        });
+      });
+      el('selectedCount').textContent = `已選: ${totalSelected}`;
+      el('btnGoStep3').disabled = false;
+      updateSelectedTag();
+    }
+
+    function toggleSelect(key) {
+      if (state.selectedOrders.has(key)) state.selectedOrders.delete(key);
+      else state.selectedOrders.add(key);
+      saveRuntimeState();
+      renderOrderList();
+      renderDetail();
+      renderResult();
+    }
+
+    function getSelectedOrders() {
+      return state.orders.filter(o => state.selectedOrders.has(o.key));
+    }
+
+    function updateSelectedTag() {
+      const codes = getSelectedOrders().map(o => o.code);
+      el('selectedOrdersTag').textContent = `已選單號: ${codes.length}${codes.length ? '（' + codes.join(', ') + '）' : ''}`;
+    }
+
+    function viewOrder(key) {
+      state.selectedOrders = new Set([key]);
+      saveRuntimeState();
+      renderOrderList();
+      renderDetail();
+      renderResult();
+      setStep(4);
+    }
+
+    function editOrder(key) {
+      state.selectedOrders = new Set([key]);
+      saveRuntimeState();
+      renderOrderList();
+      renderDetail();
+      renderResult();
+      setStep(3);
+      focusScan();
+    }
+
+    function resolveCode(scan) {
+      const s = normalizeCode(scan);
+      if (state.productsByBarcode.has(s)) return normalizeCode(state.productsByBarcode.get(s).CODE);
+      if (state.productsByCode.has(s)) return s;
+      const orders = getSelectedOrders();
+      for (const o of orders) {
+        if (o.items.find(i => normalizeCode(i.PROD) === s)) return s;
+      }
+      return null;
+    }
+
+    function playTone(type) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        const vol = 0.35; // louder for phone
+        const beep = (freq, start, dur) => {
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, start);
+          osc.connect(gain);
+          gain.gain.setValueAtTime(vol, start);
+          gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+          osc.start(start);
+          osc.stop(start + dur);
+        };
+        if (type === 'ok-barcode') {
+          beep(880, now, 0.12);
+          beep(1175, now + 0.13, 0.14);
+        } else if (type === 'ok-code') {
+          beep(740, now, 0.12);
+          beep(988, now + 0.13, 0.14);
+        } else {
+          beep(330, now, 0.12);
+          beep(220, now + 0.13, 0.16);
+        }
+      } catch {}
+    }
+
+    function parseScanInput(input) {
+      const val = input.trim().replace(/\s+/g, '');
+      if (!val) return null;
+      const m1 = val.match(/^(\d+)\*([A-Za-z0-9\-_.]+)$/);
+      const m2 = val.match(/^([A-Za-z0-9\-_.]+)\*(\d+)$/);
+      if (m1) return { raw: val, code: normalizeCode(m1[2]), qty: Number(m1[1]) };
+      if (m2) return { raw: val, code: normalizeCode(m2[1]), qty: Number(m2[2]) };
+      return { raw: val, code: normalizeCode(val), qty: 1 };
+    }
+
+    function totalScannedCount() {
+      return state.scanLog.reduce((sum, it) => sum + (it.qty || 0), 0);
+    }
+
+    function addScan() {
+      const parsed = parseScanInput(el('scanInput').value);
+      if (state.selectedOrders.size === 0) {
+        setScanMsg('請先選擇單號');
+        playTone('err');
+        focusScan();
+        return;
+      }
+      if (!parsed) return;
+      const raw = normalizeCode(parsed.code);
+      const code = resolveCode(parsed.code);
+      const qty = Math.max(1, Number(parsed.qty) || 1);
+      const key = code ? code : `UNKNOWN:${parsed.raw}`;
+      if (isExcluded(code || parsed.code, '')) {
+        setScanMsg('此品項已排除');
+        playTone('err');
+        el('scanInput').value = '';
+        focusScan();
+        return;
+      }
+      const expectedMap = new Map(aggregateSelectedItems().map(i => [i.code, i.qty]));
+      state.scanned.set(key, (state.scanned.get(key) || 0) + qty);
+      state.scanLog.push({ key, qty });
+      saveRuntimeState();
+      el('scanInput').value = '';
+      el('scanCount').textContent = `已掃: ${totalScannedCount()}`;
+      const isBarcode = state.productsByBarcode.has(raw);
+      const expectedQty = code ? (expectedMap.get(code) || 0) : 0;
+      const scannedNow = code ? (state.scanned.get(code) || 0) : 0;
+      const overScanned = code && expectedQty > 0 && scannedNow > expectedQty;
+      const isExpected = code && expectedQty > 0;
+      if (!code || !isExpected || overScanned) {
+        playTone('err');
+        setScanMsg(code ? `已登錄：${code} x ${qty}（多掃）` : `已登錄：${parsed.code} x ${qty}（多掃）`);
+      } else {
+        playTone(isBarcode ? 'ok-barcode' : 'ok-code');
+        setScanMsg(`已登錄：${code} x ${qty}`);
+      }
+      renderDetail();
+      renderResult();
+      focusScan();
+    }
+
+    function undoScan() {
+      const last = state.scanLog.pop();
+      if (!last) return;
+      const cur = state.scanned.get(last.key) || 0;
+      const next = cur - last.qty;
+      if (next <= 0) state.scanned.delete(last.key);
+      else state.scanned.set(last.key, next);
+      saveRuntimeState();
+      el('scanCount').textContent = `已掃: ${totalScannedCount()}`;
+      renderDetail();
+      renderResult();
+      focusScan();
+    }
+
+    function clearScan() {
+      if (state.selectedOrders.size === 0) return;
+      state.scanned.clear();
+      state.scanLog = [];
+      saveRuntimeState();
+      el('scanCount').textContent = '已掃: 0';
+      setScanMsg('');
+      renderDetail();
+      renderResult();
+      focusScan();
+    }
+
+    function aggregateSelectedItems() {
+      const map = new Map();
+      const nameMap = new Map();
+      for (const o of getSelectedOrders()) {
+        for (const it of o.items) {
+          const code = normalizeCode(it.PROD || it.CODE || '');
+          const qty = Number(it.QTY || it.REALQTY || 0) || 0;
+          const product = state.productsByCode.get(code) || {};
+          const name = (it.PRODDESC || it.CNAME || product.CNAME || '').trim();
+          if (isExcluded(code, name)) continue;
+          if (!code || qty <= 0) continue;
+          if (!map.has(code)) map.set(code, 0);
+          map.set(code, map.get(code) + qty);
+          if (name && !nameMap.has(code)) nameMap.set(code, name);
+        }
+      }
+      const list = [];
+      for (const [code, qty] of map.entries()) {
+        const p = state.productsByCode.get(code) || {};
+        const fallbackName = nameMap.get(code) || '';
+        list.push({ code, qty, name: p.CNAME || fallbackName || '', spec: p.SPEC || '' });
+      }
+      return list.sort((a,b) => a.code.localeCompare(b.code));
+    }
+
+    function aggregateItemsForOrder(o) {
+      const map = new Map();
+      const nameMap = new Map();
+      for (const it of o.items) {
+        const code = normalizeCode(it.PROD || it.CODE || '');
+        const qty = Number(it.QTY || it.REALQTY || 0) || 0;
+        const product = state.productsByCode.get(code) || {};
+        const name = (it.PRODDESC || it.CNAME || product.CNAME || '').trim();
+        if (isExcluded(code, name)) continue;
+        if (!code || qty <= 0) continue;
+        if (!map.has(code)) map.set(code, 0);
+        map.set(code, map.get(code) + qty);
+        if (name && !nameMap.has(code)) nameMap.set(code, name);
+      }
+      const list = [];
+      for (const [code, qty] of map.entries()) {
+        const p = state.productsByCode.get(code) || {};
+        const fallbackName = nameMap.get(code) || '';
+        list.push({ code, qty, name: p.CNAME || fallbackName || '', spec: p.SPEC || '' });
+      }
+      return list.sort((a,b) => a.code.localeCompare(b.code));
+    }
+
+    function renderDetail() {
+      const body = el('detailBody');
+      body.innerHTML = '';
+      if (state.selectedOrders.size === 0) return;
+      const items = aggregateSelectedItems();
+      for (const item of items) {
+        const scanned = state.scanned.get(item.code) || 0;
+        const ok = item.qty > 0 && scanned >= item.qty;
+        const tr = document.createElement('tr');
+        if (item.qty > 0 && !ok) tr.classList.add('row-bright');
+        if (item.qty > 0 && ok) tr.classList.add('row-dim');
+        tr.innerHTML = `
+          <td><strong class="mono">${item.code}</strong> ${item.name}</td>
+          <td class="cell-center">${item.qty}</td>
+          <td class="cell-center">${scanned}</td>
+          <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no">✖</span>'}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderResult() {
+      const lists = el('snapshotLists');
+      lists.innerHTML = '';
+      const extraBody = el('extraList');
+      extraBody.innerHTML = '';
+      const extraWrap = el('extraWrap');
+      if (state.selectedOrders.size === 0) return;
+
+      const orders = getSelectedOrders();
+      const orderCodes = orders.map(o => o.code).join(', ');
+      const orderDates = Array.from(new Set(orders.map(o => o.date).filter(Boolean))).join(', ');
+      const allItems = aggregateSelectedItems();
+      const expected = new Set(allItems.map(i => i.code));
+      let miss = 0;
+      let extra = 0;
+
+      el('snapshotOrders').textContent = `出貨單：${orderCodes || '—'}`;
+      el('snapshotDate').textContent = `日期：${orderDates || '—'}`;
+      el('snapshotCount').textContent = `品項：${allItems.length}`;
+      el('snapshotScan').textContent = `已掃：${totalScannedCount()}`;
+
+      for (const o of orders) {
+        const items = aggregateItemsForOrder(o).map(item => {
+          const scanned = state.scanned.get(item.code) || 0;
+          const ok = item.qty > 0 && scanned >= item.qty;
+          return { ...item, scanned, ok };
+        }).sort((a, b) => {
+          if (a.ok !== b.ok) return a.ok ? 1 : -1;
+          return a.code.localeCompare(b.code);
+        });
+        const box = document.createElement('div');
+        box.className = 'card';
+        const info = `${o.code} ${o.date || ''} ${o.cust || ''} ${o.addr || ''}`.trim();
+        let html = `<div class="hint" style="margin-bottom:6px;">${info}</div>`;
+        html += `
+          <div style="border: 1px solid var(--line); border-radius: 12px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>商品</th>
+                  <th class="cell-center">應掃</th>
+                  <th class="cell-center">已掃</th>
+                  <th class="cell-center">狀態</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        for (const item of items) {
+          const scanned = item.scanned;
+          const diff = scanned - item.qty;
+          const ok = item.ok;
+          if (diff < 0) { miss += Math.abs(diff); }
+          if (diff > 0) { extra += diff; }
+          const rowClass = (item.qty > 0 && !ok) ? 'row-bright' : ((item.qty > 0 && ok) ? 'row-dim' : '');
+          html += `
+            <tr class="${rowClass}">
+              <td><strong class="mono">${item.code}</strong> ${item.name}</td>
+              <td class="cell-center">${item.qty}</td>
+              <td class="cell-center">${scanned}</td>
+              <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no">✖</span>'}</td>
+            </tr>
+          `;
+        }
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+        box.innerHTML = html;
+        lists.appendChild(box);
+      }
+
+      for (const [key, val] of state.scanned.entries()) {
+        if (key.startsWith('UNKNOWN:')) {
+          extra += val;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="mono">${key.replace('UNKNOWN:','')}</td>
+            <td>未知</td>
+            <td>${val}</td>
+          `;
+          extraBody.appendChild(tr);
+          continue;
+        }
+        if (!expected.has(key)) {
+          extra += val;
+          const p = state.productsByCode.get(key) || {};
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="mono">${key}</td>
+            <td>${p.CNAME || '未知'}</td>
+            <td>${val}</td>
+          `;
+          extraBody.appendChild(tr);
+        }
+      }
+      extraWrap.style.display = extra > 0 ? 'block' : 'none';
+      return { miss, extra };
+    }
+
+    function markDone() {
+      const set = loadDoneSet();
+      for (const o of getSelectedOrders()) set.add(o.key);
+      localStorage.setItem('inventory_done', JSON.stringify([...set]));
+      state.selectedOrders.clear();
+      state.scanned.clear();
+      state.scanLog = [];
+      saveRuntimeState();
+      renderOrderList();
+      renderDetail();
+      renderResult();
+      setStep(2);
+    }
+
+    function resetAll() {
+      const ok = confirm('確定結束盤點？這會清空本次資料並回到第 1 步。');
+      if (!ok) return;
+      state.master = [];
+      state.detail = [];
+      state.products = [];
+      state.productsByCode.clear();
+      state.productsByBarcode.clear();
+      state.orders = [];
+      state.selectedOrders.clear();
+      state.scanned.clear();
+      state.scanLog = [];
+      el('statusMaster').textContent = '主檔: 0';
+      el('statusDetail').textContent = '明細: 0';
+      el('statusProduct').textContent = '商品: 0';
+      el('statusAuto').textContent = '商品自動載入：等待中';
+      el('scanCount').textContent = '已掃: 0';
+      try {
+        localStorage.removeItem('inventory_master');
+        localStorage.removeItem('inventory_detail');
+        localStorage.removeItem('inventory_products');
+        localStorage.removeItem('inventory_done');
+        localStorage.removeItem('inventory_selected');
+        localStorage.removeItem('inventory_scanned');
+        localStorage.removeItem('inventory_scanLog');
+        localStorage.removeItem('inventory_step');
+        sessionStorage.removeItem('inventory_master');
+        sessionStorage.removeItem('inventory_detail');
+        sessionStorage.removeItem('inventory_products');
+        sessionStorage.removeItem('inventory_step');
+      } catch {}
+      renderOrderList();
+      renderDetail();
+      renderResult();
+      setStep(1);
+    }
+
+    function restoreFromStorage() {
+      const load = (k) => {
+        try {
+          return JSON.parse(localStorage.getItem(k) || sessionStorage.getItem(k) || 'null');
+        } catch {
+          return null;
+        }
+      };
+      const master = load('inventory_master') || [];
+      const detail = load('inventory_detail') || [];
+      const products = load('inventory_products') || [];
+      const selected = load('inventory_selected') || [];
+      const scanned = load('inventory_scanned') || [];
+      const scanLog = load('inventory_scanLog') || [];
+      if (products.length) {
+        state.products = products;
+        state.productsByCode.clear();
+        state.productsByBarcode.clear();
+        for (const p of state.products) {
+          const code = normalizeCode(p.CODE);
+          if (code) state.productsByCode.set(code, p);
+          const barcode = normalizeCode(p.BARCODE);
+          if (barcode) state.productsByBarcode.set(barcode, p);
+        }
+        el('statusProduct').textContent = `商品: ${state.products.length}`;
+      }
+      if (master.length && detail.length) {
+        state.master = master;
+        state.detail = detail;
+        el('statusMaster').textContent = `主檔: ${state.master.length}`;
+        el('statusDetail').textContent = `明細: ${state.detail.length}`;
+        buildOrders();
+        if (Array.isArray(selected)) {
+          state.selectedOrders = new Set(selected);
+          const valid = new Set(state.orders.map(o => o.key));
+          state.selectedOrders = new Set([...state.selectedOrders].filter(k => valid.has(k)));
+        }
+        if (Array.isArray(scanned)) {
+          state.scanned = new Map(scanned);
+        }
+        if (Array.isArray(scanLog)) {
+          state.scanLog = scanLog;
+        }
+        el('scanCount').textContent = `已掃: ${totalScannedCount()}`;
+        renderOrderList();
+        renderDetail();
+        renderResult();
+      }
+    }
+
+    function loadDoneSet() {
+      try { return new Set(JSON.parse(localStorage.getItem('inventory_done') || '[]')); }
+      catch { return new Set(); }
+    }
+
+    function showUploadError(msg) {
+      const elErr = el('uploadError');
+      if (!msg) { elErr.style.display = 'none'; elErr.textContent = ''; return; }
+      elErr.textContent = msg;
+      elErr.style.display = 'block';
+    }
+
+    async function handleShipFiles(files) {
+      showUploadError('');
+      const byName = new Map();
+      for (const f of files) byName.set(f.name, f);
+      const f1 = byName.get('STKSALE1.csv');
+      const f2 = byName.get('STKSALE2.csv');
+      if (!f1 || !f2 || byName.size !== 2) {
+        showUploadError('檔名必須剛好是 STKSALE1.csv 與 STKSALE2.csv（不可多檔或少檔）');
+        return;
+      }
+      loadMaster(await readFileText(f1));
+      loadDetail(await readFileText(f2));
+    }
+
+    el('fileShip').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      await handleShipFiles(files);
+    });
+    el('orderSearch').addEventListener('input', renderOrderList);
+    el('btnAddScan').addEventListener('click', addScan);
+    el('scanInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addScan(); });
+    el('scanInput').addEventListener('input', (e) => {
+      e.target.value = normalizeCode(e.target.value);
+    });
+    el('btnUndo').addEventListener('click', undoScan);
+    el('btnClearScan').addEventListener('click', clearScan);
+    el('btnDone').addEventListener('click', markDone);
+
+    el('btnGoStep2').addEventListener('click', () => setStep(2));
+    el('btnBack1').addEventListener('click', () => setStep(1));
+    el('btnGoStep3').addEventListener('click', () => {
+      if (state.selectedOrders.size === 0) {
+        alert('請先選擇訂單，才能往下一步');
+        return;
+      }
+      setStep(3);
+      renderDetail();
+      renderResult();
+      focusScan();
+    });
+    el('btnBack2').addEventListener('click', () => setStep(2));
+    el('btnGoStep4').addEventListener('click', () => {
+      const result = renderResult() || { miss: 0, extra: 0 };
+      setStep(4);
+      if (result.miss > 0) {
+        setScanMsg(`仍有缺少：${result.miss}`);
+      } else {
+        setScanMsg('');
+      }
+    });
+    el('btnBack3').addEventListener('click', () => setStep(3));
+    el('btnResetAll').addEventListener('click', resetAll);
+
+    el('btnClearSelect').addEventListener('click', () => {
+      state.selectedOrders.clear();
+      saveRuntimeState();
+      renderOrderList();
+      renderDetail();
+      renderResult();
+    });
+
+    el('btnSnapshot').addEventListener('click', async () => {
+      const target = el('snapshotArea');
+      if (!target || !window.html2canvas) return;
+      const btn = el('btnSnapshot');
+      const prev = btn.textContent;
+      btn.textContent = '產生中...';
+      btn.disabled = true;
+      const canvas = await window.html2canvas(target, { backgroundColor: '#ffffff', scale: 2 });
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = '盤點結果.png';
+      a.click();
+      btn.textContent = prev;
+      btn.disabled = false;
+    });
+
+    if (location.protocol === 'file:') {
+      el('corsHint').style.display = 'block';
+      el('statusAuto').textContent = '商品自動載入：需要 http:// 開啟';
+    }
+
+    restoreFromStorage();
+    autoLoadProducts();
+
+    function getSavedStep() {
+      const m = location.hash.match(/step-(\d)/);
+      if (m) return Number(m[1]);
+      try {
+        const s = sessionStorage.getItem('inventory_step') || localStorage.getItem('inventory_step');
+        return Number(s || '1');
+      } catch {
+        return 1;
+      }
+    }
+    const savedStep = getSavedStep();
+    if (savedStep >= 1 && savedStep <= 4) setStep(savedStep);
+
+    // restoreFromStorage already handles initial hydration
+  </script>
+</body>
+</html>
