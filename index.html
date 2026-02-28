@@ -178,6 +178,7 @@
     .check { font-weight: 800; font-size: 16px; }
     .check.ok { color: var(--accent); }
     .check.no { color: var(--danger); }
+    .check.note { font-size: 12px; font-weight: 700; }
     .cell-center { text-align: center; }
 
     .mono { font-family: var(--mono); color: #2d3436; background: #f1f2f6; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
@@ -325,7 +326,6 @@
 
     <section class="card step-page" data-page="4">
       <h2>第四步：結果截圖</h2>
-      <div class="hint" style="margin-bottom:8px;">這一頁就是截圖用畫面：出貨單基本資訊 + 盤點結果。</div>
       <div id="snapshotArea">
       <div class="summary">
         <div class="row" style="margin-bottom:6px;">
@@ -343,7 +343,7 @@
         <table>
           <thead>
             <tr>
-              <th>代碼</th>
+              <th class="cell-center">代碼</th>
               <th>品名</th>
               <th>數量</th>
             </tr>
@@ -835,15 +835,15 @@
       const items = aggregateSelectedItems();
       for (const item of items) {
         const scanned = state.scanned.get(item.code) || 0;
-        const ok = item.qty > 0 && scanned >= item.qty;
+        const ok = item.qty > 0 && scanned === item.qty;
         const tr = document.createElement('tr');
-        if (item.qty > 0 && !ok) tr.classList.add('row-bright');
-        if (item.qty > 0 && ok) tr.classList.add('row-dim');
+        if (item.qty > 0 && scanned !== item.qty) tr.classList.add('row-bright');
+        if (item.qty > 0 && scanned === item.qty) tr.classList.add('row-dim');
         tr.innerHTML = `
           <td><strong class="mono">${item.code}</strong> ${item.name}</td>
           <td class="cell-center">${item.qty}</td>
           <td class="cell-center">${scanned}</td>
-          <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no">✖</span>'}</td>
+          <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no note">✖ 數字不對</span>'}</td>
         `;
         body.appendChild(tr);
       }
@@ -873,7 +873,7 @@
       for (const o of orders) {
         const items = aggregateItemsForOrder(o).map(item => {
           const scanned = state.scanned.get(item.code) || 0;
-          const ok = item.qty > 0 && scanned >= item.qty;
+          const ok = item.qty > 0 && scanned === item.qty;
           return { ...item, scanned, ok };
         }).sort((a, b) => {
           if (a.ok !== b.ok) return a.ok ? 1 : -1;
@@ -901,13 +901,13 @@
           const ok = item.ok;
           if (diff < 0) { miss += Math.abs(diff); }
           if (diff > 0) { extra += diff; }
-          const rowClass = (item.qty > 0 && !ok) ? 'row-bright' : ((item.qty > 0 && ok) ? 'row-dim' : '');
+          const rowClass = (item.qty > 0 && scanned !== item.qty) ? 'row-bright' : ((item.qty > 0 && scanned === item.qty) ? 'row-dim' : '');
           html += `
             <tr class="${rowClass}">
               <td><strong class="mono">${item.code}</strong> ${item.name}</td>
               <td class="cell-center">${item.qty}</td>
               <td class="cell-center">${scanned}</td>
-              <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no">✖</span>'}</td>
+              <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no note">✖ 數字不對</span>'}</td>
             </tr>
           `;
         }
@@ -924,7 +924,7 @@
           extra += val;
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="mono">${key.replace('UNKNOWN:','')}</td>
+            <td class="cell-center"><span class="mono">${key.replace('UNKNOWN:','')}</span></td>
             <td>未知</td>
             <td>${val}</td>
           `;
@@ -936,7 +936,7 @@
           const p = state.productsByCode.get(key) || {};
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="mono">${key}</td>
+            <td class="cell-center"><span class="mono">${key}</span></td>
             <td>${p.CNAME || '未知'}</td>
             <td>${val}</td>
           `;
