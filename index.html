@@ -151,14 +151,14 @@
       padding: 15px;
       border-bottom: 1px solid var(--line);
       cursor: pointer;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 6px;
+      display: block;
       transition: background 0.2s;
     }
     .order-item:hover { background: #fafafa; }
     .order-item.active { background: #f0fff4; border-left: 5px solid var(--accent); }
     .order-item input { pointer-events: none; }
+    .order-side { margin-top: 8px; }
+    .order-actions { margin-top: 6px; }
 
     .status-done { color: #2f8c7f; font-weight: 700; }
     .status-open { color: #b4802b; font-weight: 700; }
@@ -300,10 +300,6 @@
         <span class="tag" id="scanCount">已掃: 0</span>
         <span class="tag" id="scanMsg" style="display:none;"></span>
       </div>
-      <div class="footer-actions" style="margin-bottom:10px;">
-        <button class="btn ghost" id="btnUndo">回退</button>
-        <button class="btn warn" id="btnClearScan">清空本單</button>
-      </div>
       <div class="hint" style="margin-bottom:6px;">明細對照（合併清單）</div>
       <div>
         <table>
@@ -317,6 +313,10 @@
           </thead>
           <tbody id="detailBody"></tbody>
         </table>
+      </div>
+      <div class="footer-actions" style="margin-top:10px;">
+        <button class="btn ghost" id="btnUndo">復原</button>
+        <button class="btn warn" id="btnClearScan">清空盤點</button>
       </div>
       <div class="footer-actions" style="margin-top:10px;">
         <button class="btn ghost" id="btnBack2">上一步</button>
@@ -592,10 +592,10 @@
             </div>
             <div class="hint">${o.cust} ${o.addr}</div>
           </div>
-          <div>
+          <div class="order-side">
             <div class="${done ? 'status-done' : 'status-open'}">${done ? '已盤點' : '未盤點'}</div>
             ${done ? `
-              <div class="row" style="margin-top:6px;">
+              <div class="row order-actions">
                 <button class="btn tiny ghost" data-action="view" data-key="${o.key}">檢視盤點單</button>
                 <button class="btn tiny" data-action="edit" data-key="${o.key}">修改盤點單</button>
               </div>
@@ -843,7 +843,7 @@
           <td><strong class="mono">${item.code}</strong> ${item.name}</td>
           <td class="cell-center">${item.qty}</td>
           <td class="cell-center">${scanned}</td>
-          <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no note">✖ 數字不對</span>'}</td>
+          <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no note">✖ 錯誤</span>'}</td>
         `;
         body.appendChild(tr);
       }
@@ -907,7 +907,7 @@
               <td><strong class="mono">${item.code}</strong> ${item.name}</td>
               <td class="cell-center">${item.qty}</td>
               <td class="cell-center">${scanned}</td>
-              <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no note">✖ 數字不對</span>'}</td>
+              <td class="cell-center">${ok ? '<span class="check ok">✔</span>' : '<span class="check no note">✖ 錯誤</span>'}</td>
             </tr>
           `;
         }
