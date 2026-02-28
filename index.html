@@ -30,18 +30,20 @@
       min-height: 100vh;
     }
 
+    .top-shell {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
     .hero {
       padding: 24px 20px;
       background: linear-gradient(135deg, #10ac84 0%, #00b894 100%);
       color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      box-shadow: 0 2px 10px rgba(16, 172, 132, 0.3);
+      box-shadow: 0 2px 10px rgba(16, 172, 132, 0.2);
       text-align: center;
     }
     .hero h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 2px; }
-    .hero p { margin: 6px 0 0; font-size: 13px; opacity: 0.85; font-weight: 300; }
 
     .stepper {
       display: flex;
@@ -50,9 +52,6 @@
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line);
-      position: sticky;
-      top: 84px;
-      z-index: 9;
     }
     .step {
       flex: 1;
@@ -145,10 +144,8 @@
     }
 
     .order-list {
-      max-height: 50vh;
-      overflow: auto;
-      border-radius: 10px;
-      border: 1px solid var(--line);
+      border-radius: 0;
+      border: none;
     }
     .order-item {
       padding: 15px;
@@ -173,8 +170,6 @@
       font-weight: 600;
       color: var(--muted);
       border-bottom: 2px solid var(--line);
-      position: sticky;
-      top: 0;
     }
     td { padding: 12px 8px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; vertical-align: top; }
 
@@ -194,7 +189,15 @@
     .snapshot-mode .stepper,
     .snapshot-mode .actions-hide { display: none !important; }
     .snapshot-mode body { background: #fff; }
-    #snapshotArea { padding: 10px; background: #fff; }
+    #snapshotArea { padding: 0; background: #fff; }
+    #snapshotArea .summary {
+      margin-bottom: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    #snapshotArea .order-block {
+      margin-bottom: 12px;
+    }
 
     .footer-actions {
       display: grid;
@@ -214,9 +217,7 @@
     .footer-actions-4 #btnDone { grid-area: done; }
 
     @media (max-width: 480px) {
-      .stepper { top: 76px; }
       .hero h1 { font-size: 18px; }
-      .hero p { font-size: 11px; }
       .footer-actions { grid-template-columns: 1fr; }
       .footer-actions-4 { grid-template-areas: none; }
       .footer-actions-4 #btnBack3,
@@ -233,16 +234,17 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
-  <header class="hero">
-    <h1>盤點小幫手</h1>
-    <p>手機流程：上傳 → 選單 → 掃碼 → 結果</p>
-  </header>
+  <div class="top-shell">
+    <header class="hero">
+      <h1>盤點小幫手</h1>
+    </header>
 
-  <div class="stepper">
-    <div class="step active" data-step="1">1 上傳</div>
-    <div class="step" data-step="2">2 選單</div>
-    <div class="step" data-step="3">3 掃碼</div>
-    <div class="step" data-step="4">4 結果</div>
+    <div class="stepper">
+      <div class="step active" data-step="1">1 上傳</div>
+      <div class="step" data-step="2">2 選單</div>
+      <div class="step" data-step="3">3 掃碼</div>
+      <div class="step" data-step="4">4 結果</div>
+    </div>
   </div>
 
   <main class="wrap">
@@ -302,7 +304,7 @@
         <button class="btn warn" id="btnClearScan">清空本單</button>
       </div>
       <div class="hint" style="margin-bottom:6px;">明細對照（合併清單）</div>
-      <div style="max-height: 48vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px;">
+      <div>
         <table>
           <thead>
             <tr id="detailHead">
@@ -325,7 +327,7 @@
       <h2>第四步：結果截圖</h2>
       <div class="hint" style="margin-bottom:8px;">這一頁就是截圖用畫面：出貨單基本資訊 + 盤點結果。</div>
       <div id="snapshotArea">
-      <div class="card" style="margin-bottom:10px;">
+      <div class="summary">
         <div class="row" style="margin-bottom:6px;">
           <span class="tag" id="snapshotOrders">出貨單：—</span>
           <span class="tag" id="snapshotDate">日期：—</span>
@@ -338,18 +340,16 @@
       <div id="snapshotLists"></div>
       <div id="extraWrap" style="display:none;">
         <div class="hint" style="margin:10px 0 6px;">多掃/未知</div>
-        <div style="border: 1px solid var(--line); border-radius: 12px;">
-          <table>
-            <thead>
-              <tr>
-                <th>代碼</th>
-                <th>品名</th>
-                <th>數量</th>
-              </tr>
-            </thead>
-            <tbody id="extraList"></tbody>
-          </table>
-        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>代碼</th>
+              <th>品名</th>
+              <th>數量</th>
+            </tr>
+          </thead>
+          <tbody id="extraList"></tbody>
+        </table>
       </div>
       </div>
       <div class="footer-actions actions-hide footer-actions-4" style="margin-top:10px;">
@@ -880,21 +880,20 @@
           return a.code.localeCompare(b.code);
         });
         const box = document.createElement('div');
-        box.className = 'card';
+        box.className = 'order-block';
         const info = `${o.code} ${o.date || ''} ${o.cust || ''} ${o.addr || ''}`.trim();
         let html = `<div class="hint" style="margin-bottom:6px;">${info}</div>`;
         html += `
-          <div style="border: 1px solid var(--line); border-radius: 12px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>商品</th>
-                  <th class="cell-center">應掃</th>
-                  <th class="cell-center">已掃</th>
-                  <th class="cell-center">狀態</th>
-                </tr>
-              </thead>
-              <tbody>
+          <table>
+            <thead>
+              <tr>
+                <th>商品</th>
+                <th class="cell-center">應掃</th>
+                <th class="cell-center">已掃</th>
+                <th class="cell-center">狀態</th>
+              </tr>
+            </thead>
+            <tbody>
         `;
         for (const item of items) {
           const scanned = item.scanned;
@@ -913,9 +912,8 @@
           `;
         }
         html += `
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
         `;
         box.innerHTML = html;
         lists.appendChild(box);
